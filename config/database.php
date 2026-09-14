@@ -5,10 +5,10 @@ $db_name = 'pwl_db';
 $user    = 'root';
 $pass    = '';
 
-$conn = new mysqli($host, $user, $pass, $db_name);
-
-if ($conn->connect_error) {
-    die('Connection failed: ' . $conn->connect_error);
+try {
+    $conn = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8mb4", $user, $pass);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die('Connection failed: ' . $e->getMessage());
 }
-
-$conn->set_charset('utf8mb4');
