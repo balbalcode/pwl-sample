@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/../config/database.php';
 
+use Ramsey\Uuid\Uuid;
+
 class ProductModel
 {
     private $db;
@@ -23,7 +25,7 @@ class ProductModel
     public function getById($id)
     {
         $stmt = $this->db->prepare("SELECT * FROM products WHERE id = ?");
-        $stmt->bind_param('i', $id);
+        $stmt->bind_param('s', $id);
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
     }
@@ -31,16 +33,20 @@ class ProductModel
     // Create new product
     public function create($data)
     {
-        $stmt = $this->db->prepare("INSERT INTO products (name, price, description) VALUES (?, ?, ?)");
-        $stmt->bind_param('sds', $data['name'], $data['price'], $data['description']);
-        return $stmt->execute();
+        $id = Uuid::uuid4()->toString();
+
+        $stmt = $this->db->prepare("INSERT INTO products (id, name, price, description) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param('ssds', $id, $data['name'], $data['price'], $data['description']);
+        $stmt->execute();
+
+        return $id;
     }
 
     // Update existing product
     public function update($id, $data)
     {
         $stmt = $this->db->prepare("UPDATE products SET name = ?, price = ?, description = ? WHERE id = ?");
-        $stmt->bind_param('sdsi', $data['name'], $data['price'], $data['description'], $id);
+        $stmt->bind_param('sdss', $data['name'], $data['price'], $data['description'], $id);
         return $stmt->execute();
     }
 
@@ -48,7 +54,7 @@ class ProductModel
     public function delete($id)
     {
         $stmt = $this->db->prepare("DELETE FROM products WHERE id = ?");
-        $stmt->bind_param('i', $id);
+        $stmt->bind_param('s', $id);
         return $stmt->execute();
     }
 }
