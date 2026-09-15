@@ -5,10 +5,11 @@
         <div class="card">
             <div class="card-header">
                 <h4 class="mb-0">Create Product</h4>
+                <p class="text-muted small mb-0">Add a new item to your catalog</p>
             </div>
 
             <div class="card-body">
-                <form action="/pwl/products/store" method="POST">
+                <form action="<?= BASE_URL ?>/products/store" method="POST">
 
                     <div class="mb-3">
                         <label class="form-label">Name</label>
@@ -38,7 +39,7 @@
 
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">Save</button>
-                        <a href="/pwl/products" class="btn btn-secondary">Cancel</a>
+                        <a href="<?= BASE_URL ?>/products" class="btn btn-secondary">Cancel</a>
                     </div>
 
                 </form>

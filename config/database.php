@@ -1,7 +1,7 @@
 <?php
 
 $host    = 'localhost';
-$db_name = 'pwl_db';
+$db_name = 'tik_pbl';
 $user    = 'root';
 $pass    = '';
 

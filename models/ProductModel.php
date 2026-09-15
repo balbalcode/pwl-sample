@@ -14,11 +14,19 @@ class ProductModel
         $this->db = $conn;
     }
 
-    // Get all products
-    public function getAll()
+    // Get all products, optionally filtered by name
+    public function getAll($search = null)
     {
-        $result = $this->db->query("SELECT * FROM products ORDER BY created_at DESC");
-        return $result->fetch_all(MYSQLI_ASSOC);
+        if ($search === null || $search === '') {
+            $result = $this->db->query("SELECT * FROM products ORDER BY created_at DESC");
+            return $result->fetch_all(MYSQLI_ASSOC);
+        }
+
+        $stmt = $this->db->prepare("SELECT * FROM products WHERE name LIKE ? ORDER BY created_at DESC");
+        $like = '%' . $search . '%';
+        $stmt->bind_param('s', $like);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
     // Get one product by id

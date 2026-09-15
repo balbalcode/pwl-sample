@@ -34,7 +34,6 @@ function validate($data)
 // GET  /products            → index
 // GET  /products/create     → create form
 // POST /products/store      → save new
-// GET  /products/1          → show
 // GET  /products/1/edit     → edit form
 // POST /products/1/update   → save edit
 // POST /products/1/delete   → delete
@@ -43,13 +42,9 @@ function validate($data)
 switch ("$method:$action") {
 
     case 'GET:index':
-        $products = $model->getAll();
+        $search   = trim($_GET['q'] ?? '');
+        $products = $model->getAll($search);
         require_once __DIR__ . '/../views/products/index.php';
-        break;
-
-    case 'GET:show':
-        $product = $model->getById($id);
-        require_once __DIR__ . '/../views/products/show.php';
         break;
 
     case 'GET:create':
@@ -71,7 +66,7 @@ switch ("$method:$action") {
             'description' => trim($_POST['description']),
         ]);
 
-        header('Location: /pwl/products');
+        header('Location: ' . BASE_URL . '/products');
         exit;
 
     case 'GET:edit':
@@ -95,12 +90,12 @@ switch ("$method:$action") {
             'description' => trim($_POST['description']),
         ]);
 
-        header('Location: /pwl/products');
+        header('Location: ' . BASE_URL . '/products');
         exit;
 
     case 'POST:delete':
         $model->delete($id);
-        header('Location: /pwl/products');
+        header('Location: ' . BASE_URL . '/products');
         exit;
 
     default:

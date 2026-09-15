@@ -5,10 +5,11 @@
         <div class="card">
             <div class="card-header">
                 <h4 class="mb-0">Edit Product</h4>
+                <p class="text-muted small mb-0">Update the details below</p>
             </div>
 
             <div class="card-body">
-                <form action="/pwl/products/<?= $product['id'] ?>/update" method="POST">
+                <form action="<?= BASE_URL ?>/products/<?= $product['id'] ?>/update" method="POST">
 
                     <div class="mb-3">
                         <label class="form-label">Name</label>
@@ -37,8 +38,8 @@
                     </div>
 
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-warning">Update</button>
-                        <a href="/pwl/products" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                        <a href="<?= BASE_URL ?>/products" class="btn btn-secondary">Cancel</a>
                     </div>
 
                 </form>
