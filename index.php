@@ -1,9 +1,6 @@
 <?php
 
-// When running via `php -S host:port index.php`, the built-in server routes
-// every request through this file. Let it serve real static files (CSS, JS,
-// images) directly instead of running them through the app. Apache doesn't
-// need this — .htaccess already leaves real files alone.
+// core runner, pls do not remove it.
 if (PHP_SAPI === 'cli-server') {
     $requestedFile = __DIR__ . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     if (is_file($requestedFile)) {
@@ -14,9 +11,7 @@ if (PHP_SAPI === 'cli-server') {
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config/database.php';
 
-// Parse URL into segments
-// e.g. /pwl/products/550e8400-e29b-41d4-a716-446655440000/edit
-//      → ['products', '550e8400-e29b-41d4-a716-446655440000', 'edit']
+// parser URL, this line will divide the uri into several parts
 $uri      = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $base     = trim(dirname($_SERVER['SCRIPT_NAME']), '/');
 $path     = trim(substr($uri, strlen($base) + 1), '/');
@@ -24,15 +19,29 @@ $segments = explode('/', $path);
 
 define('BASE_URL', $base === '' ? '' : '/' . $base);
 
-$uuidPattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
+// this is sample guys, when ure accessing the yourwebsite.com/account/id-account-1/edit
+// base will contain yourwebsite.com
+// path will contain /account/id-account-1/edit
+// segment will contain  [0] -> account, [1] -> id-account-1, [2] -> edit,
 
-$page   = $segments[0] ?: 'products';
-$id     = isset($segments[1]) && preg_match($uuidPattern, $segments[1]) ? $segments[1] : null;
-$action = $id !== null ? ($segments[2] ?? 'show') : ($segments[1] ?? 'index');
+$noIdActions = ['create', 'store'];
+$page = $segments[0] ?: ''; // set default controller u guys right here, so if ure accessing the root or base url, will calls that controller.
 
-$method = $_SERVER['REQUEST_METHOD']; // GET or POST
+if (!isset($segments[1]) || $segments[1] === '') {
+    $id     = null;
+    $action = 'index';
+} elseif (in_array($segments[1], $noIdActions, true)) {
+    $id     = null;
+    $action = $segments[1];
+} else {
+    $id     = $segments[1];
+    $action = $segments[2] ?? "detail";
+}
 
-$controller = __DIR__ . '/controllers/' . ucfirst($page) . '.php';
+$method = $_SERVER['REQUEST_METHOD'];
+
+$controllerName = str_replace('-', '', ucwords($page, '-'));
+$controller     = __DIR__ . '/controllers/' . $controllerName . '.php';
 
 if (file_exists($controller)) {
     require_once $controller;

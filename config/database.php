@@ -5,10 +5,9 @@ $db_name = 'tik_pbl';
 $user    = 'root';
 $pass    = '';
 
-$conn = new mysqli($host, $user, $pass, $db_name);
-
-if ($conn->connect_error) {
-    die('Connection failed: ' . $conn->connect_error);
+try {
+    $conn = new PDO("mysql:host={$host};dbname={$db_name};charset=utf8mb4", $user, $pass);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die('Connection failed: ' . $e->getMessage());
 }
-
-$conn->set_charset('utf8mb4');
