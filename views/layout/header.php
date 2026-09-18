@@ -21,8 +21,13 @@
 
             <ul class="sidebar-nav">
                 <li>
-                    <a href="<?= BASE_URL ?>/products" class="nav-link active ">
-                        <i class="bi bi-grid"></i> Menu klean
+                    <a href="<?= BASE_URL ?>/products" class="nav-link <?= $page === 'products' ? 'active' : '' ?>">
+                        <i class="bi bi-grid"></i> Products
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= BASE_URL ?>/dictionaries" class="nav-link <?= $page === 'dictionaries' ? 'active' : '' ?>">
+                        <i class="bi bi-book"></i> Dictionaries
                     </a>
                 </li>
             </ul>

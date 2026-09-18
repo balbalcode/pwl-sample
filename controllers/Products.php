@@ -7,7 +7,21 @@ $model = new ProductModel();
 function validate($data)
 {
     $errors = [];
-    // set u guys validator here if needed. 
+
+    if (empty(trim($data['name'] ?? ''))) {
+        $errors['name'] = 'Name is required.';
+    }
+
+    if (empty(trim($data['price'] ?? ''))) {
+        $errors['price'] = 'Price is required.';
+    } elseif (!is_numeric($data['price']) || $data['price'] < 0) {
+        $errors['price'] = 'Price must be a positive number.';
+    }
+
+    if (empty(trim($data['description'] ?? ''))) {
+        $errors['description'] = 'Description is required.';
+    }
+
     return $errors;
 }
 
