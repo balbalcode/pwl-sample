@@ -3,6 +3,7 @@
         "ramsey/uuid": "^4.9"
     },
     "scripts": {
-        "serve": "php -S localhost:5000 index.php"
+        "serve": "php -S localhost:5000 index.php",
+        "makeMVC": "php tools/make-mvc.php"
     }
 }

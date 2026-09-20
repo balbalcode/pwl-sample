@@ -1,7 +1,5 @@
 <?php
-$isEdit = in_array($action, ['edit', 'update'], true);
-$values = $old ?? $dictionary ?? [];
-$title  = $isEdit ? 'Edit Dictionary' : 'Create Dictionary';
+$values = $dictionary ?? [];
 
 require_once __DIR__ . '/../layout/header.php';
 ?>
@@ -10,8 +8,8 @@ require_once __DIR__ . '/../layout/header.php';
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h4 class="mb-0"><?= $title ?></h4>
-                <p class="text-muted small mb-0"><?= $isEdit ? 'Update the details below' : 'Add a new dictionary entry' ?></p>
+                <h4 class="mb-0">Form Dictionary</h4>
+                <p class="text-muted small mb-0">Manage your dictionary entries here</p>
             </div>
 
             <div class="card-body">

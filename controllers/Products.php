@@ -44,6 +44,7 @@ switch ("$method:$action") {
         break;
 
     case 'GET:create':
+        $isEdit = false;
         require_once __DIR__ . '/../views/products/form.php';
         break;
 
@@ -51,7 +52,7 @@ switch ("$method:$action") {
         $errors = validate($_POST);
 
         if (!empty($errors)) {
-            $old = $_POST;
+            $isEdit = false;
             require_once __DIR__ . '/../views/products/form.php';
             break;
         }
@@ -74,6 +75,7 @@ switch ("$method:$action") {
             break;
         }
 
+        $isEdit = true;
         require_once __DIR__ . '/../views/products/form.php';
         break;
 
@@ -87,7 +89,8 @@ switch ("$method:$action") {
         $errors = validate($_POST);
 
         if (!empty($errors)) {
-            $old = $_POST;
+            $isEdit = true;
+            $product = $model->getById($id);
             require_once __DIR__ . '/../views/products/form.php';
             break;
         }
