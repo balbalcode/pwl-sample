@@ -2,96 +2,105 @@
 
 require_once __DIR__ . '/../models/CategoryModel.php';
 
-$model = new CategoryModel();
-
-function validate($data)
+class Categories
 {
-    $errors = [];
+    private $model;
 
-    if (empty(trim($data['name'] ?? ''))) {
-        $errors['name'] = 'Name is required.';
+    public function __construct()
+    {
+        $this->model = new CategoryModel();
     }
 
-    return $errors;
-}
+    private function validate($data)
+    {
+        $errors = [];
 
-switch ("$method:$action") {
+        if (empty(trim($data['name'] ?? ''))) {
+            $errors['name'] = 'Name is required.';
+        }
 
-    case 'GET:index':
-        $categories = $model->getAll();
+        return $errors;
+    }
+
+    public function index()
+    {
+        $categories = $this->model->getAll();
         require_once __DIR__ . '/../views/categories/index.php';
-        break;
+    }
 
-    case 'GET:create':
+    public function create()
+    {
         $isEdit = false;
         require_once __DIR__ . '/../views/categories/form.php';
-        break;
+    }
 
-    case 'POST:store':
-        $errors = validate($_POST);
+    public function store()
+    {
+        $errors = $this->validate($_POST);
 
         if (!empty($errors)) {
             $isEdit = false;
             require_once __DIR__ . '/../views/categories/form.php';
-            break;
+            return;
         }
 
-        $model->create([
+        $this->model->create([
             'name' => trim($_POST['name']),
         ]);
 
         header('Location: ' . BASE_URL . '/categories');
         exit;
+    }
 
-    case 'GET:edit':
-        $category = $model->getById($id);
+    public function edit($id)
+    {
+        $category = $this->model->getById($id);
 
         if ($category === null) {
             http_response_code(404);
             echo '404 - Category not found';
-            break;
+            return;
         }
 
         $isEdit = true;
         require_once __DIR__ . '/../views/categories/form.php';
-        break;
+    }
 
-    case 'POST:update':
-        if ($model->getById($id) === null) {
+    public function update($id)
+    {
+        if ($this->model->getById($id) === null) {
             http_response_code(404);
             echo '404 - Category not found';
-            break;
+            return;
         }
 
-        $errors = validate($_POST);
+        $errors = $this->validate($_POST);
 
         if (!empty($errors)) {
             $isEdit   = true;
-            $category = $model->getById($id);
+            $category = $this->model->getById($id);
             require_once __DIR__ . '/../views/categories/form.php';
-            break;
+            return;
         }
 
-        $model->update($id, [
+        $this->model->update($id, [
             'name' => trim($_POST['name']),
         ]);
 
         header('Location: ' . BASE_URL . '/categories');
         exit;
+    }
 
-    case 'POST:delete':
-        if ($model->getById($id) === null) {
+    public function delete($id)
+    {
+        if ($this->model->getById($id) === null) {
             http_response_code(404);
             echo '404 - Category not found';
-            break;
+            return;
         }
 
-        $model->delete($id);
+        $this->model->delete($id);
         header('Location: ' . BASE_URL . '/categories');
         exit;
-
-    default:
-        http_response_code(404);
-        echo '404 - Action not found';
-        break;
+    }
 }

@@ -1,5 +1,12 @@
 <?php
 
+// catch any real error (not our own 404s) and show it as a meme instead of
+// a raw PHP fatal-error dump
+set_exception_handler(function (Throwable $exception) {
+    http_response_code(500);
+    require __DIR__ . '/views/errors/crash.php';
+});
+
 // core runner, pls do not remove it.
 if (PHP_SAPI === 'cli-server') {
     $requestedFile = __DIR__ . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -35,17 +42,48 @@ if (!isset($segments[1]) || $segments[1] === '') {
     $action = $segments[1];
 } else {
     $id     = $segments[1];
-    $action = $segments[2] ?? "detail";
+    $action = $segments[2] ?? 'detail';
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-$controllerName = str_replace('-', '', ucwords($page, '-'));
-$controller     = __DIR__ . '/controllers/' . $controllerName . '.php';
+// actions that must come from a form submission (POST), not a plain link/URL (GET)
+$postOnlyActions = ['store', 'update', 'delete'];
+$expectsPost     = in_array($action, $postOnlyActions, true);
 
-if (file_exists($controller)) {
-    require_once $controller;
-} else {
+$controllerName = str_replace('-', '', ucwords($page, '-'));
+$controllerFile = __DIR__ . '/controllers/' . $controllerName . '.php';
+
+if (!file_exists($controllerFile)) {
     http_response_code(404);
     echo '404 - Page not found';
+    exit;
+}
+
+require_once $controllerFile;
+
+if (!class_exists($controllerName)) {
+    http_response_code(404);
+    echo '404 - Page not found';
+    exit;
+}
+
+if (($expectsPost && $method !== 'POST') || (!$expectsPost && $method !== 'GET')) {
+    http_response_code(404);
+    echo '404 - Action not found';
+    exit;
+}
+
+$controller = new $controllerName();
+
+if (!method_exists($controller, $action)) {
+    http_response_code(404);
+    echo '404 - Action not found';
+    exit;
+}
+
+if ($id === null) {
+    $controller->$action();
+} else {
+    $controller->$action($id);
 }

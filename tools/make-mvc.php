@@ -94,98 +94,107 @@ $controllerTemplate = <<<'EOT'
 
 require_once __DIR__ . '/../models/{{NAME}}Model.php';
 
-$model = new {{NAME}}Model();
-
-function validate($data)
+class {{NAME}}
 {
-    $errors = [];
+    private $model;
 
-    if (empty(trim($data['name'] ?? ''))) {
-        $errors['name'] = 'Name is required.';
+    public function __construct()
+    {
+        $this->model = new {{NAME}}Model();
     }
 
-    return $errors;
-}
+    private function validate($data)
+    {
+        $errors = [];
 
-switch ("$method:$action") {
+        if (empty(trim($data['name'] ?? ''))) {
+            $errors['name'] = 'Name is required.';
+        }
 
-    case 'GET:index':
-        ${{LOWER}} = $model->getAll();
+        return $errors;
+    }
+
+    public function index()
+    {
+        ${{LOWER}} = $this->model->getAll();
         require_once __DIR__ . '/../views/{{LOWER}}/index.php';
-        break;
+    }
 
-    case 'GET:create':
+    public function create()
+    {
         $isEdit = false;
         require_once __DIR__ . '/../views/{{LOWER}}/form.php';
-        break;
+    }
 
-    case 'POST:store':
-        $errors = validate($_POST);
+    public function store()
+    {
+        $errors = $this->validate($_POST);
 
         if (!empty($errors)) {
             $isEdit = false;
             require_once __DIR__ . '/../views/{{LOWER}}/form.php';
-            break;
+            return;
         }
 
-        $model->create([
+        $this->model->create([
             'name' => trim($_POST['name']),
         ]);
 
         header('Location: ' . BASE_URL . '/{{LOWER}}');
         exit;
+    }
 
-    case 'GET:edit':
-        ${{LOWER}} = $model->getById($id);
+    public function edit($id)
+    {
+        ${{LOWER}} = $this->model->getById($id);
 
         if (${{LOWER}} === null) {
             http_response_code(404);
             echo '404 - {{NAME}} not found';
-            break;
+            return;
         }
 
         $isEdit = true;
         require_once __DIR__ . '/../views/{{LOWER}}/form.php';
-        break;
+    }
 
-    case 'POST:update':
-        if ($model->getById($id) === null) {
+    public function update($id)
+    {
+        if ($this->model->getById($id) === null) {
             http_response_code(404);
             echo '404 - {{NAME}} not found';
-            break;
+            return;
         }
 
-        $errors = validate($_POST);
+        $errors = $this->validate($_POST);
 
         if (!empty($errors)) {
             $isEdit = true;
-            ${{LOWER}} = $model->getById($id);
+            ${{LOWER}} = $this->model->getById($id);
             require_once __DIR__ . '/../views/{{LOWER}}/form.php';
-            break;
+            return;
         }
 
-        $model->update($id, [
+        $this->model->update($id, [
             'name' => trim($_POST['name']),
         ]);
 
         header('Location: ' . BASE_URL . '/{{LOWER}}');
         exit;
+    }
 
-    case 'POST:delete':
-        if ($model->getById($id) === null) {
+    public function delete($id)
+    {
+        if ($this->model->getById($id) === null) {
             http_response_code(404);
             echo '404 - {{NAME}} not found';
-            break;
+            return;
         }
 
-        $model->delete($id);
+        $this->model->delete($id);
         header('Location: ' . BASE_URL . '/{{LOWER}}');
         exit;
-
-    default:
-        http_response_code(404);
-        echo '404 - Action not found';
-        break;
+    }
 }
 
 EOT;

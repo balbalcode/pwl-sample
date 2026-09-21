@@ -2,62 +2,73 @@
 
 require_once __DIR__ . '/../models/ProductModel.php';
 
-$model = new ProductModel();
-
-function validate($data)
+class Products
 {
-    $errors = [];
+    private $model;
 
-    if (empty(trim($data['name'] ?? ''))) {
-        $errors['name'] = 'Name is required.';
+    public function __construct()
+    {
+        $this->model = new ProductModel();
     }
 
-    if (empty(trim($data['price'] ?? ''))) {
-        $errors['price'] = 'Price is required.';
-    } elseif (!is_numeric($data['price']) || $data['price'] < 0) {
-        $errors['price'] = 'Price must be a positive number.';
+    private function validate($data)
+    {
+        $errors = [];
+
+        if (empty(trim($data['name'] ?? ''))) {
+            $errors['name'] = 'Name is required.';
+        }
+
+        if (empty(trim($data['price'] ?? ''))) {
+            $errors['price'] = 'Price is required.';
+        } elseif (!is_numeric($data['price']) || $data['price'] < 0) {
+            $errors['price'] = 'Price must be a positive number.';
+        }
+
+        if (empty(trim($data['description'] ?? ''))) {
+            $errors['description'] = 'Description is required.';
+        }
+
+        return $errors;
     }
 
-    if (empty(trim($data['description'] ?? ''))) {
-        $errors['description'] = 'Description is required.';
-    }
-
-    return $errors;
-}
-
-switch ("$method:$action") {
-
-    case 'GET:index':
+    public function index()
+    {
         $search   = trim($_GET['q'] ?? '');
-        $products = $model->getAll($search);
+        $products = $this->model->getAll($search);
         require_once __DIR__ . '/../views/products/index.php';
-        break;
+    }
 
-    case 'GET:detail':
-        $products = [$model->getById($id)];
+    public function detail($id)
+    {
+        $products = [$this->model->getById($id)];
+
         if ($products[0] === null) {
             http_response_code(404);
             echo '404 - Product not found';
-            break;
+            return;
         }
-        require_once __DIR__ . '/../views/products/index.php';
-        break;
 
-    case 'GET:create':
+        require_once __DIR__ . '/../views/products/index.php';
+    }
+
+    public function create()
+    {
         $isEdit = false;
         require_once __DIR__ . '/../views/products/form.php';
-        break;
+    }
 
-    case 'POST:store':
-        $errors = validate($_POST);
+    public function store()
+    {
+        $errors = $this->validate($_POST);
 
         if (!empty($errors)) {
             $isEdit = false;
             require_once __DIR__ . '/../views/products/form.php';
-            break;
+            return;
         }
 
-        $model->create([
+        $this->model->create([
             'name'        => trim($_POST['name']),
             'price'       => (int) $_POST['price'],
             'description' => trim($_POST['description']),
@@ -65,37 +76,40 @@ switch ("$method:$action") {
 
         header('Location: ' . BASE_URL . '/products');
         exit;
+    }
 
-    case 'GET:edit':
-        $product = $model->getById($id);
+    public function edit($id)
+    {
+        $product = $this->model->getById($id);
 
         if ($product === null) {
             http_response_code(404);
             echo '404 - Product not found';
-            break;
+            return;
         }
 
         $isEdit = true;
         require_once __DIR__ . '/../views/products/form.php';
-        break;
+    }
 
-    case 'POST:update':
-        if ($model->getById($id) === null) {
+    public function update($id)
+    {
+        if ($this->model->getById($id) === null) {
             http_response_code(404);
             echo '404 - Product not found';
-            break;
+            return;
         }
 
-        $errors = validate($_POST);
+        $errors = $this->validate($_POST);
 
         if (!empty($errors)) {
-            $isEdit = true;
-            $product = $model->getById($id);
+            $isEdit  = true;
+            $product = $this->model->getById($id);
             require_once __DIR__ . '/../views/products/form.php';
-            break;
+            return;
         }
 
-        $model->update($id, [
+        $this->model->update($id, [
             'name'        => trim($_POST['name']),
             'price'       => (int) $_POST['price'],
             'description' => trim($_POST['description']),
@@ -103,20 +117,18 @@ switch ("$method:$action") {
 
         header('Location: ' . BASE_URL . '/products');
         exit;
+    }
 
-    case 'POST:delete':
-        if ($model->getById($id) === null) {
+    public function delete($id)
+    {
+        if ($this->model->getById($id) === null) {
             http_response_code(404);
             echo '404 - Product not found';
-            break;
+            return;
         }
 
-        $model->delete($id);
+        $this->model->delete($id);
         header('Location: ' . BASE_URL . '/products');
         exit;
-
-    default:
-        http_response_code(404);
-        echo '404 - Action not found';
-        break;
+    }
 }

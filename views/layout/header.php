@@ -1,4 +1,4 @@
-
+<?php global $page; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
