@@ -97,10 +97,12 @@ require_once __DIR__ . '/../models/{{NAME}}Model.php';
 class {{NAME}}
 {
     private $model;
+    private $load;
 
     public function __construct()
     {
         $this->model = new {{NAME}}Model();
+        $this->load  = new Loader();
     }
 
     private function validate($data)
@@ -117,13 +119,17 @@ class {{NAME}}
     public function index()
     {
         ${{LOWER}} = $this->model->getAll();
-        require_once __DIR__ . '/../views/{{LOWER}}/index.php';
+        $this->load->view('views/{{LOWER}}/index.php', [
+            '{{LOWER}}' => ${{LOWER}},
+        ]);
     }
 
     public function create()
     {
         $isEdit = false;
-        require_once __DIR__ . '/../views/{{LOWER}}/form.php';
+        $this->load->view('views/{{LOWER}}/form.php', [
+            'isEdit' => $isEdit,
+        ]);
     }
 
     public function store()
@@ -132,7 +138,10 @@ class {{NAME}}
 
         if (!empty($errors)) {
             $isEdit = false;
-            require_once __DIR__ . '/../views/{{LOWER}}/form.php';
+            $this->load->view('views/{{LOWER}}/form.php', [
+                'isEdit' => $isEdit,
+                'errors' => $errors,
+            ]);
             return;
         }
 
@@ -155,7 +164,11 @@ class {{NAME}}
         }
 
         $isEdit = true;
-        require_once __DIR__ . '/../views/{{LOWER}}/form.php';
+        $this->load->view('views/{{LOWER}}/form.php', [
+            'isEdit'    => $isEdit,
+            'id'        => $id,
+            '{{LOWER}}' => ${{LOWER}},
+        ]);
     }
 
     public function update($id)
@@ -171,7 +184,12 @@ class {{NAME}}
         if (!empty($errors)) {
             $isEdit = true;
             ${{LOWER}} = $this->model->getById($id);
-            require_once __DIR__ . '/../views/{{LOWER}}/form.php';
+            $this->load->view('views/{{LOWER}}/form.php', [
+                'isEdit'    => $isEdit,
+                'id'        => $id,
+                '{{LOWER}}' => ${{LOWER}},
+                'errors'    => $errors,
+            ]);
             return;
         }
 

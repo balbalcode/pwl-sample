@@ -5,10 +5,12 @@ require_once __DIR__ . '/../models/CategoryModel.php';
 class Categories
 {
     private $model;
+    private $load;
 
     public function __construct()
     {
         $this->model = new CategoryModel();
+        $this->load  = new Loader();
     }
 
     private function validate($data)
@@ -25,13 +27,17 @@ class Categories
     public function index()
     {
         $categories = $this->model->getAll();
-        require_once __DIR__ . '/../views/categories/index.php';
+        $this->load->view('views/categories/index.php', [
+            'categories' => $categories,
+        ]);
     }
 
     public function create()
     {
         $isEdit = false;
-        require_once __DIR__ . '/../views/categories/form.php';
+        $this->load->view('views/categories/form.php', [
+            'isEdit' => $isEdit,
+        ]);
     }
 
     public function store()
@@ -40,7 +46,10 @@ class Categories
 
         if (!empty($errors)) {
             $isEdit = false;
-            require_once __DIR__ . '/../views/categories/form.php';
+            $this->load->view('views/categories/form.php', [
+                'isEdit' => $isEdit,
+                'errors' => $errors,
+            ]);
             return;
         }
 
@@ -63,7 +72,11 @@ class Categories
         }
 
         $isEdit = true;
-        require_once __DIR__ . '/../views/categories/form.php';
+        $this->load->view('views/categories/form.php', [
+            'isEdit'   => $isEdit,
+            'id'       => $id,
+            'category' => $category,
+        ]);
     }
 
     public function update($id)
@@ -79,7 +92,12 @@ class Categories
         if (!empty($errors)) {
             $isEdit   = true;
             $category = $this->model->getById($id);
-            require_once __DIR__ . '/../views/categories/form.php';
+            $this->load->view('views/categories/form.php', [
+                'isEdit'   => $isEdit,
+                'id'       => $id,
+                'category' => $category,
+                'errors'   => $errors,
+            ]);
             return;
         }
 

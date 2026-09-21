@@ -5,10 +5,12 @@ require_once __DIR__ . '/../models/ProductModel.php';
 class Products
 {
     private $model;
+    private $load;
 
     public function __construct()
     {
         $this->model = new ProductModel();
+        $this->load  = new Loader();
     }
 
     private function validate($data)
@@ -36,7 +38,10 @@ class Products
     {
         $search   = trim($_GET['q'] ?? '');
         $products = $this->model->getAll($search);
-        require_once __DIR__ . '/../views/products/index.php';
+        $this->load->view('views/products/index.php', [
+            'products' => $products,
+            'search'   => $search,
+        ]);
     }
 
     public function detail($id)
@@ -49,13 +54,17 @@ class Products
             return;
         }
 
-        require_once __DIR__ . '/../views/products/index.php';
+        $this->load->view('views/products/index.php', [
+            'products' => $products,
+        ]);
     }
 
     public function create()
     {
         $isEdit = false;
-        require_once __DIR__ . '/../views/products/form.php';
+        $this->load->view('views/products/form.php', [
+            'isEdit' => $isEdit,
+        ]);
     }
 
     public function store()
@@ -64,7 +73,10 @@ class Products
 
         if (!empty($errors)) {
             $isEdit = false;
-            require_once __DIR__ . '/../views/products/form.php';
+            $this->load->view('views/products/form.php', [
+                'isEdit' => $isEdit,
+                'errors' => $errors,
+            ]);
             return;
         }
 
@@ -89,7 +101,11 @@ class Products
         }
 
         $isEdit = true;
-        require_once __DIR__ . '/../views/products/form.php';
+        $this->load->view('views/products/form.php', [
+            'isEdit'  => $isEdit,
+            'id'      => $id,
+            'product' => $product,
+        ]);
     }
 
     public function update($id)
@@ -105,7 +121,12 @@ class Products
         if (!empty($errors)) {
             $isEdit  = true;
             $product = $this->model->getById($id);
-            require_once __DIR__ . '/../views/products/form.php';
+            $this->load->view('views/products/form.php', [
+                'isEdit'  => $isEdit,
+                'id'      => $id,
+                'product' => $product,
+                'errors'  => $errors,
+            ]);
             return;
         }
 

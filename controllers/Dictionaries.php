@@ -5,10 +5,12 @@ require_once __DIR__ . '/../models/DictionaryModel.php';
 class Dictionaries
 {
     private $model;
+    private $load;
 
     public function __construct()
     {
         $this->model = new DictionaryModel();
+        $this->load  = new Loader();
     }
 
     private function validate($data)
@@ -30,7 +32,10 @@ class Dictionaries
     {
         $search       = trim($_GET['q'] ?? '');
         $dictionaries = $this->model->getAll($search);
-        require_once __DIR__ . '/../views/dictionaries/index.php';
+        $this->load->view('views/dictionaries/index.php', [
+            'dictionaries' => $dictionaries,
+            'search'       => $search,
+        ]);
     }
 
     public function detail($id)
@@ -43,13 +48,17 @@ class Dictionaries
             return;
         }
 
-        require_once __DIR__ . '/../views/dictionaries/index.php';
+        $this->load->view('views/dictionaries/index.php', [
+            'dictionaries' => $dictionaries,
+        ]);
     }
 
     public function create()
     {
         $isEdit = false;
-        require_once __DIR__ . '/../views/dictionaries/form.php';
+        $this->load->view('views/dictionaries/form.php', [
+            'isEdit' => $isEdit,
+        ]);
     }
 
     public function store()
@@ -58,7 +67,10 @@ class Dictionaries
 
         if (!empty($errors)) {
             $isEdit = false;
-            require_once __DIR__ . '/../views/dictionaries/form.php';
+            $this->load->view('views/dictionaries/form.php', [
+                'isEdit' => $isEdit,
+                'errors' => $errors,
+            ]);
             return;
         }
 
@@ -83,7 +95,11 @@ class Dictionaries
         }
 
         $isEdit = true;
-        require_once __DIR__ . '/../views/dictionaries/form.php';
+        $this->load->view('views/dictionaries/form.php', [
+            'isEdit'     => $isEdit,
+            'id'         => $id,
+            'dictionary' => $dictionary,
+        ]);
     }
 
     public function update($id)
@@ -99,7 +115,12 @@ class Dictionaries
         if (!empty($errors)) {
             $isEdit     = true;
             $dictionary = $this->model->getById($id);
-            require_once __DIR__ . '/../views/dictionaries/form.php';
+            $this->load->view('views/dictionaries/form.php', [
+                'isEdit'     => $isEdit,
+                'id'         => $id,
+                'dictionary' => $dictionary,
+                'errors'     => $errors,
+            ]);
             return;
         }
 
