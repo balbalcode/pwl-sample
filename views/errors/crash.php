@@ -16,8 +16,8 @@
         <p class="text-muted small mb-3">Ini bukan 404 -- ini beneran ada yang salah di kode.</p>
 
         <div class="text-start bg-white border rounded-3 p-3 small font-monospace text-break">
-            <?= htmlspecialchars($exception->getMessage()) ?><br>
-            <span class="text-muted"><?= htmlspecialchars($exception->getFile()) ?>:<?= $exception->getLine() ?></span>
+            <?= $exception->getMessage() ?><br>
+            <span class="text-muted"><?= $exception->getFile() ?>:<?= $exception->getLine() ?></span>
         </div>
     </div>
 

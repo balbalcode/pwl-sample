@@ -20,9 +20,14 @@ require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/core/Loader.php';
 
 // parser URL, this line will divide the uri into several parts
-$uri      = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$base     = trim(dirname($_SERVER['SCRIPT_NAME']), '/');
-$path     = trim(substr($uri, strlen($base) + 1), '/');
+$uri  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$base = trim(dirname($_SERVER['SCRIPT_NAME']), '/');
+
+if ($base !== '' && ($uri === '/' . $base || strpos($uri, '/' . $base . '/') === 0)) {
+    $uri = substr($uri, strlen('/' . $base));
+}
+
+$path     = trim($uri, '/');
 $segments = explode('/', $path);
 
 define('BASE_URL', $base === '' ? '' : '/' . $base);
@@ -52,12 +57,34 @@ $method = $_SERVER['REQUEST_METHOD'];
 $postOnlyActions = ['store', 'update', 'delete'];
 $expectsPost     = in_array($action, $postOnlyActions, true);
 
-$controllerName = str_replace('-', '', ucwords($page, '-'));
-$controllerFile = __DIR__ . '/controllers/' . $controllerName . '.php';
+$controllerFile = null;
+$controllerName = null;
+$squashedPage   = strtolower(str_replace('-', '', $page));
 
-if (!file_exists($controllerFile)) {
+foreach (glob(__DIR__ . '/controllers/*.php') as $candidate) {
+    $candidateName = basename($candidate, '.php');
+    if (strtolower($candidateName) === $squashedPage) {
+        $controllerFile = $candidate;
+        $controllerName = $candidateName;
+        break;
+    }
+}
+
+if ($controllerFile === null) {
     http_response_code(404);
     echo '404 - Page not found';
+    exit;
+}
+
+$canonicalPage = strtolower(preg_replace('/(?<!^)([A-Z])/', '-$1', $controllerName));
+
+if ($page !== $canonicalPage) {
+    $rest     = implode('/', array_slice($segments, 1));
+    $location = BASE_URL . '/' . $canonicalPage . ($rest !== '' ? '/' . $rest : '');
+    if (!empty($_SERVER['QUERY_STRING'])) {
+        $location .= '?' . $_SERVER['QUERY_STRING'];
+    }
+    header('Location: ' . $location, true, $method === 'GET' ? 301 : 307);
     exit;
 }
 

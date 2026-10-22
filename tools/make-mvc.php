@@ -10,6 +10,7 @@ if (!$name || !preg_match('/^[A-Za-z]+$/', $name)) {
 
 $name  = ucfirst($name);
 $lower = strtolower($name);
+$slug  = strtolower(preg_replace('/(?<!^)([A-Z])/', '-$1', $name));
 
 $root = dirname(__DIR__);
 
@@ -105,17 +106,6 @@ class {{NAME}}
         $this->load  = new Loader();
     }
 
-    private function validate($data)
-    {
-        $errors = [];
-
-        if (empty(trim($data['name'] ?? ''))) {
-            $errors['name'] = 'Name is required.';
-        }
-
-        return $errors;
-    }
-
     public function index()
     {
         ${{LOWER}} = $this->model->getAll();
@@ -134,22 +124,11 @@ class {{NAME}}
 
     public function store()
     {
-        $errors = $this->validate($_POST);
-
-        if (!empty($errors)) {
-            $isEdit = false;
-            $this->load->view('views/{{LOWER}}/form.php', [
-                'isEdit' => $isEdit,
-                'errors' => $errors,
-            ]);
-            return;
-        }
-
         $this->model->create([
             'name' => trim($_POST['name']),
         ]);
 
-        header('Location: ' . BASE_URL . '/{{LOWER}}');
+        header('Location: ' . BASE_URL . '/{{SLUG}}');
         exit;
     }
 
@@ -179,25 +158,11 @@ class {{NAME}}
             return;
         }
 
-        $errors = $this->validate($_POST);
-
-        if (!empty($errors)) {
-            $isEdit = true;
-            ${{LOWER}} = $this->model->getById($id);
-            $this->load->view('views/{{LOWER}}/form.php', [
-                'isEdit'    => $isEdit,
-                'id'        => $id,
-                '{{LOWER}}' => ${{LOWER}},
-                'errors'    => $errors,
-            ]);
-            return;
-        }
-
         $this->model->update($id, [
             'name' => trim($_POST['name']),
         ]);
 
-        header('Location: ' . BASE_URL . '/{{LOWER}}');
+        header('Location: ' . BASE_URL . '/{{SLUG}}');
         exit;
     }
 
@@ -210,7 +175,7 @@ class {{NAME}}
         }
 
         $this->model->delete($id);
-        header('Location: ' . BASE_URL . '/{{LOWER}}');
+        header('Location: ' . BASE_URL . '/{{SLUG}}');
         exit;
     }
 }
@@ -222,7 +187,7 @@ $indexViewTemplate = <<<'EOT'
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">{{NAME}}</h4>
-    <a href="<?= BASE_URL ?>/{{LOWER}}/create" class="btn btn-primary">
+    <a href="<?= BASE_URL ?>/{{SLUG}}/create" class="btn btn-primary">
         <i class="bi bi-plus-lg"></i> Add {{NAME}}
     </a>
 </div>
@@ -231,7 +196,7 @@ $indexViewTemplate = <<<'EOT'
     <div class="card text-center p-5">
         <i class="bi bi-inbox text-muted" style="font-size: 2.5rem;"></i>
         <p class="mt-3 mb-3 text-muted">No {{LOWER}} found yet.</p>
-        <a href="<?= BASE_URL ?>/{{LOWER}}/create" class="btn btn-primary btn-sm">
+        <a href="<?= BASE_URL ?>/{{SLUG}}/create" class="btn btn-primary btn-sm">
             <i class="bi bi-plus-lg"></i> Add {{NAME}}
         </a>
     </div>
@@ -250,12 +215,12 @@ $indexViewTemplate = <<<'EOT'
                     <?php foreach (${{LOWER}} as $row): ?>
                     <tr>
                         <td><span class="badge bg-light text-dark font-monospace fw-normal"><?= substr($row['id'], 0, 8) ?></span></td>
-                        <td class="fw-semibold"><?= htmlspecialchars($row['name']) ?></td>
+                        <td class="fw-semibold"><?= $row['name'] ?></td>
                         <td class="text-end">
-                            <a href="<?= BASE_URL ?>/{{LOWER}}/<?= $row['id'] ?>/edit" class="btn btn-outline-warning btn-sm">
+                            <a href="<?= BASE_URL ?>/{{SLUG}}/<?= $row['id'] ?>/edit" class="btn btn-outline-warning btn-sm">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form action="<?= BASE_URL ?>/{{LOWER}}/<?= $row['id'] ?>/delete" method="POST" class="d-inline"
+                            <form action="<?= BASE_URL ?>/{{SLUG}}/<?= $row['id'] ?>/delete" method="POST" class="d-inline"
                                   onsubmit="return confirm('Are you sure?')">
                                 <button type="submit" class="btn btn-outline-danger btn-sm">
                                     <i class="bi bi-trash"></i>
@@ -289,20 +254,17 @@ require_once __DIR__ . '/../layout/header.php';
             </div>
 
             <div class="card-body">
-                <form action="<?= $isEdit ? BASE_URL . '/{{LOWER}}/' . $id . '/update' : BASE_URL . '/{{LOWER}}/store' ?>" method="POST">
+                <form action="<?= $isEdit ? BASE_URL . '/{{SLUG}}/' . $id . '/update' : BASE_URL . '/{{SLUG}}/store' ?>" method="POST">
 
                     <div class="mb-3">
                         <label class="form-label">Name</label>
-                        <input type="text" name="name" class="form-control <?= isset($errors['name']) ? 'is-invalid' : '' ?>"
-                               value="<?= htmlspecialchars($values['name'] ?? '') ?>">
-                        <?php if (isset($errors['name'])): ?>
-                            <div class="invalid-feedback"><?= $errors['name'] ?></div>
-                        <?php endif; ?>
+                        <input type="text" name="name" class="form-control"
+                               value="<?= $values['name'] ?? '' ?>">
                     </div>
 
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary"><?= $isEdit ? 'Update' : 'Save' ?></button>
-                        <a href="<?= BASE_URL ?>/{{LOWER}}" class="btn btn-secondary">Cancel</a>
+                        <a href="<?= BASE_URL ?>/{{SLUG}}" class="btn btn-secondary">Cancel</a>
                     </div>
 
                 </form>
@@ -315,17 +277,17 @@ require_once __DIR__ . '/../layout/header.php';
 
 EOT;
 
-function render($template, $name, $lower)
+function render($template, $name, $lower, $slug)
 {
-    return str_replace(['{{NAME}}', '{{LOWER}}'], [$name, $lower], $template);
+    return str_replace(['{{NAME}}', '{{LOWER}}', '{{SLUG}}'], [$name, $lower, $slug], $template);
 }
 
 mkdir($viewDir, 0755, true);
 
-file_put_contents($modelPath, render($modelTemplate, $name, $lower));
-file_put_contents($controllerPath, render($controllerTemplate, $name, $lower));
-file_put_contents($indexViewPath, render($indexViewTemplate, $name, $lower));
-file_put_contents($formViewPath, render($formViewTemplate, $name, $lower));
+file_put_contents($modelPath, render($modelTemplate, $name, $lower, $slug));
+file_put_contents($controllerPath, render($controllerTemplate, $name, $lower, $slug));
+file_put_contents($indexViewPath, render($indexViewTemplate, $name, $lower, $slug));
+file_put_contents($formViewPath, render($formViewTemplate, $name, $lower, $slug));
 
 echo "Created:\n";
 echo "  - models/{$name}Model.php\n";
