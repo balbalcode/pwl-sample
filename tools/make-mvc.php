@@ -51,9 +51,15 @@ class {{NAME}}Model
         $this->db = $conn;
     }
 
-    public function getAll()
+    public function getAll($search = null)
     {
-        $stmt = $this->db->query("SELECT * FROM {{LOWER}} ORDER BY name ASC");
+        if ($search === null || $search === '') {
+            $stmt = $this->db->query("SELECT * FROM {{LOWER}} ORDER BY name ASC");
+            return $stmt->fetchAll();
+        }
+
+        $stmt = $this->db->prepare("SELECT * FROM {{LOWER}} WHERE name LIKE ? ORDER BY name ASC");
+        $stmt->execute(['%' . $search . '%']);
         return $stmt->fetchAll();
     }
 
@@ -108,9 +114,11 @@ class {{NAME}}
 
     public function index()
     {
-        ${{LOWER}} = $this->model->getAll();
+        $search = trim($_GET['q'] ?? '');
+        ${{LOWER}} = $this->model->getAll($search);
         $this->load->view('views/{{LOWER}}/index.php', [
             '{{LOWER}}' => ${{LOWER}},
+            'search'    => $search,
         ]);
     }
 
@@ -185,8 +193,15 @@ EOT;
 $indexViewTemplate = <<<'EOT'
 <?php require_once __DIR__ . '/../layout/header.php'; ?>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">{{NAME}}</h4>
+<div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-3">
+    <form action="<?= BASE_URL ?>/{{SLUG}}" method="GET" class="d-flex" role="search">
+        <input type="text" name="q" class="form-control" placeholder="Search {{LOWER}}..."
+               value="<?= $search ?? '' ?>">
+        <button type="submit" class="btn btn-outline-secondary ms-2">
+            <i class="bi bi-search"></i>
+        </button>
+    </form>
+
     <a href="<?= BASE_URL ?>/{{SLUG}}/create" class="btn btn-primary">
         <i class="bi bi-plus-lg"></i> Add {{NAME}}
     </a>
@@ -195,10 +210,15 @@ $indexViewTemplate = <<<'EOT'
 <?php if (empty(${{LOWER}})): ?>
     <div class="card text-center p-5">
         <i class="bi bi-inbox text-muted" style="font-size: 2.5rem;"></i>
-        <p class="mt-3 mb-3 text-muted">No {{LOWER}} found yet.</p>
-        <a href="<?= BASE_URL ?>/{{SLUG}}/create" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-lg"></i> Add {{NAME}}
-        </a>
+        <?php if (!empty($search)): ?>
+            <p class="mt-3 mb-3 text-muted">No {{LOWER}} match "<?= $search ?>".</p>
+            <a href="<?= BASE_URL ?>/{{SLUG}}" class="btn btn-outline-secondary btn-sm">Clear search</a>
+        <?php else: ?>
+            <p class="mt-3 mb-3 text-muted">No {{LOWER}} found yet.</p>
+            <a href="<?= BASE_URL ?>/{{SLUG}}/create" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg"></i> Add {{NAME}}
+            </a>
+        <?php endif; ?>
     </div>
 <?php else: ?>
     <div class="card">
