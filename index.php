@@ -20,8 +20,18 @@ require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/core/Loader.php';
 
 // parser URL, this line will divide the uri into several parts
-$uri  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$base = trim(dirname($_SERVER['SCRIPT_NAME']), '/');
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+// SCRIPT_NAME can come back with backslashes (Windows) or as a bare
+// filename with no leading slash -- normalize it before computing the
+// base path, and bail out to '' (no subfolder) if it still looks wrong
+// instead of producing a broken BASE_URL.
+$scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
+$base       = trim(dirname($scriptName), '/');
+
+if ($base === '.' || strpos($base, ':') !== false) {
+    $base = '';
+}
 
 if ($base !== '' && ($uri === '/' . $base || strpos($uri, '/' . $base . '/') === 0)) {
     $uri = substr($uri, strlen('/' . $base));
