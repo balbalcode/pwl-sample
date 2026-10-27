@@ -22,16 +22,15 @@ require_once __DIR__ . '/core/Loader.php';
 // parser URL, this line will divide the uri into several parts
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-// SCRIPT_NAME can come back with backslashes (Windows) or as a bare
-// filename with no leading slash -- normalize it before computing the
-// base path, and bail out to '' (no subfolder) if it still looks wrong
-// instead of producing a broken BASE_URL.
+// when running on the PHP built-in server (`composer serve`), the app is
+// always served from the root, so BASE_URL is just empty -- computing it
+// from SCRIPT_NAME here was unreliable on Windows. Outside the built-in
+// server (eg. deployed under Apache in a subfolder), keep deriving it from
+// SCRIPT_NAME like before.
 $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
-$base       = trim(dirname($scriptName), '/');
+$base       = PHP_SAPI === 'cli-server' ? '' : trim(dirname($scriptName), '/');
 
-if ($base === '.' || strpos($base, ':') !== false) {
-    $base = '';
-}
+define('BASE_URL', $base === '' ? '' : '/' . $base);
 
 if ($base !== '' && ($uri === '/' . $base || strpos($uri, '/' . $base . '/') === 0)) {
     $uri = substr($uri, strlen('/' . $base));
@@ -40,11 +39,8 @@ if ($base !== '' && ($uri === '/' . $base || strpos($uri, '/' . $base . '/') ===
 $path     = trim($uri, '/');
 $segments = explode('/', $path);
 
-define('BASE_URL', $base === '' ? '' : '/' . $base);
-
 // this is sample guys, when ure accessing the yourwebsite.com/account/id-account-1/edit
-// base will contain yourwebsite.com
-// path will contain /account/id-account-1/edit
+// path will contain account/id-account-1/edit
 // segment will contain  [0] -> account, [1] -> id-account-1, [2] -> edit,
 
 $noIdActions = ['create', 'store'];
