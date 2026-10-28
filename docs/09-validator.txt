@@ -1,0 +1,43 @@
+================================================================
+BAGIAN 9 : VALIDATOR
+================================================================
+
+KONSEP: VALIDATOR
+------------------------------------------------------
+Validator merupakan class yang membantu untuk melakukan validasi terhadap data yang dikirim form ke controller. Kelas ini
+sebagai perlindungan terdepan untuk menjaga data yang dikirim aman dan sesuai dengan format yang dibutuhkan.
+Validator akan mengembalikan error atau kesalahan pada field yang divalidasi.
+
+CONTOH PENGGUNAAN
+-----------------------------------------------------
+Pada contoh penggunaan ini, kode menggunakan hardcoded data. Pada praktiknya, umum digunakan menggunakan variabel
+$_POST sebagai data yang akan divalidasi.
+
+Untuk melakukan validasi seluruh data (termasuk file), gunakan : [...$_REQUEST, ...$_FILES]
+
+$data_1 = ['name' => 'Naveta Candra', 'age' => '22', 'email' => 'dev@navetacandraa.my.id', 'hobby' => 'sleep'];
+$data_2 = ['name' => '  Naveta   ', 'age' => '15', 'email' => 'dev@google'];
+$rules = [
+    'name' => [
+        'required' => 'Name is required!',
+        'max_length:10' => 'Name length max is 10 char!',
+    ],
+    'age' => [
+        'required' => 'Age is required!',
+        'min:18' => "You're too young!",
+        'max:60' => "You're too old!",
+    ],
+    'email' => [
+        'required' => 'Email is required!',
+        'email' => 'Email must be valid mail address!'
+    ],
+    'hobby' => [
+        'enum:sleep,watch,read' => "Hobby is not valid!"
+    ]
+];
+
+print_r('Validation Result (data_1): ');
+var_dump(Validator::validate($data_1, $rules));
+
+print_r('Validation Result (data_2): ');
+var_dump(Validator::validate($data_2, $rules));
