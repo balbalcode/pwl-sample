@@ -11,6 +11,17 @@ class Validator {
         'uuid'      => [self::class, 'validateUuid'],
         'enum'      => [self::class, 'validateEnum'],
         'pattern'   => [self::class, 'validatePattern'],
+        'min'       => [self::class, 'validateMinMax'],
+        'max'       => [self::class, 'validateMinMax'],
+        'min_length'       => [self::class, 'validateMinMaxLength'],
+        'max_length'       => [self::class, 'validateMinMaxLength'],
+    ];
+
+    private const BOUND_RULES = [
+        'min'           => true,
+        'max'           => true,
+        'min_length'    => true,
+        'max_length'    => true,
     ];
 
     private const UUID_PATTERN = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
@@ -54,6 +65,26 @@ class Validator {
         return is_string($data) && preg_match("/$pattern/", $data) === 1;
     }
 
+    protected static function validateMinMax(mixed $data, string $bound, int $length): bool {
+        if (is_numeric($data)) {
+            $value = floatval($data);
+        } else {
+            return false;
+        }
+
+        return $bound === 'min' ? $value >= $length : $value <= $length;
+    }
+
+    protected static function validateMinMaxLength(mixed $data, string $bound, int $length): bool {
+        if (is_string($data)) {
+            $value = strlen($data);
+        } else {
+            return false;
+        }
+
+        return $bound === 'min_length' ? $value >= $length : $value <= $length;
+    }
+
     private static function validateField(mixed $data, array $rules): ?string {
         $isRequired = isset($rules['required']);
         $isEmpty = !$isRequired && !self::validateRequired($data);
@@ -66,11 +97,36 @@ class Validator {
         return null;
     }
 
-    private static function passes(mixed $data, string $rule): bool {
-        $check = self::RULES[$rule] ?? null;
-        if ($check === null) return true; // rule not registered
+    private static function parseRule(string $rule): array {
+        $sep = strpos($rule, ':'); // find first ':'
+        if($sep === false) return [$rule, null]; // no arg
 
-        return $check($data);
+        $name = substr($rule, 0, $sep);
+        $arg = substr($rule, $sep + 1); // pass all after ':'
+
+        return [
+            $name,
+            ctype_digit($arg) // check is digit
+                ? (int) $arg // convert to int
+                : $arg // pass as-is
+        ];
+    }
+
+    private static function passes(mixed $data, string $rule): bool {
+        [$name, $arg] = self::parseRule($rule);
+        $check = self::RULES[$name] ?? null;
+
+        // rule not registered
+        if ($check === null) return true;
+
+        // no arg parsed
+        if($arg === null) return $check($data);
+
+        // registered as bound rules
+        if(isset(self::BOUND_RULES[$name]))
+            return $check($data, $name, $arg);
+
+        return $check($data, $arg); // pass arg
     }
 
     public static function validate(array $data, array $fieldAndRules): ?array {
