@@ -164,9 +164,13 @@ class Validator {
         return $check($data, $arg); // pass arg
     }
 
-    public static function validate(array $data, array $fieldAndRules): ?array {
+    public static function validate(array &$data, array $fieldAndRules): ?array {
         $errors = [];
         foreach ($fieldAndRules as $field => $rules) {
+            if(isset($data[$field]) && is_string($data[$field])) {
+                $data[$field] = trim($data[$field]); // force trim
+            }
+
             $result = self::validateField($data[$field] ?? null, $rules);
             if ($result !== null) {
                 $errors[$field] = $result;
