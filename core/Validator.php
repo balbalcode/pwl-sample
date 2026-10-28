@@ -9,6 +9,8 @@ class Validator {
         'float'     => [self::class, 'validateFloat'],
         'email'     => [self::class, 'validateEmail'],
         'uuid'      => [self::class, 'validateUuid'],
+        'enum'      => [self::class, 'validateEnum'],
+        'pattern'   => [self::class, 'validatePattern'],
     ];
 
     private const UUID_PATTERN = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
@@ -42,6 +44,14 @@ class Validator {
         return is_string($data)
             && strlen($data) === 36
             && preg_match(self::UUID_PATTERN, $data) === 1;
+    }
+
+    protected static function validateEnum(mixed $data, string $list): bool {
+        return is_string($data) && in_array($data, explode(',', $list), true);
+    }
+
+    protected static function validatePattern(mixed $data, string $pattern): bool {
+        return is_string($data) && preg_match("/$pattern/", $data) === 1;
     }
 
     private static function validateField(mixed $data, array $rules): ?string {
